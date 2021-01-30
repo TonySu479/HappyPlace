@@ -14,9 +14,10 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.HappyPlaces">
-        <activity android:name=".AddHappyPlaceActivity"
-            android:screenOrientation="portrait"
+        <activity
+            android:name=".AddHappyPlaceActivity"
             android:label="ADD HAPPY PLACE"
+            android:screenOrientation="portrait"
             android:theme="@style/CustomNoActionBarTheme"></activity>
         <activity android:name=".MainActivity">
             <intent-filter>

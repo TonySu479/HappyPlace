@@ -19,6 +19,7 @@ import com.karumi.dexter.listener.PermissionRequest
 import com.karumi.dexter.listener.multi.MultiplePermissionsListener
 import kotlinx.android.synthetic.main.activity_add_happy_place.*
 import java.text.SimpleDateFormat
+import android.Manifest
 import java.util.*
 
 class AddHappyPlaceActivity : AppCompatActivity(), View.OnClickListener {
