@@ -1,5 +1,6 @@
 package com.example.happyplaces.activities
 
+import android.app.Activity
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -18,7 +19,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         fabAddHappyPlace.setOnClickListener {
             val intent = Intent(this, AddHappyPlaceActivity::class.java)
-            startActivity(intent)
+            startActivityForResult(intent, ADD_PLACE_ACTIVITY_REQUEST_CODE)
         }
         getHappyPlacesListFromLocalDB()
     }
@@ -31,6 +32,13 @@ class MainActivity : AppCompatActivity() {
 
         val placesAdapter = HappyPlacesAdapter(this, happyPlaceList)
         rv_happy_places_list.adapter = placesAdapter
+
+        placesAdapter.setOnClickListener(object : HappyPlacesAdapter.OnClickListener{
+            override fun onClick(position: Int, model: HappyPlaceModel) {
+                val intent = Intent(this@MainActivity, HappyPlaceDetailActivity::class.java)
+                startActivity(intent)
+            }
+        })
     }
 
     private fun getHappyPlacesListFromLocalDB() {
@@ -46,4 +54,20 @@ class MainActivity : AppCompatActivity() {
             tv_no_records_available.visibility = View.VISIBLE
         }
     }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if(requestCode == ADD_PLACE_ACTIVITY_REQUEST_CODE){
+            if(resultCode == Activity.RESULT_OK){
+                getHappyPlacesListFromLocalDB()
+            }else {
+                Log.e("Activity", "Cancelled or Back pressed")
+            }
+        }
+    }
+
+    companion object {
+        var ADD_PLACE_ACTIVITY_REQUEST_CODE = 1
+    }
+
 }
