@@ -8,6 +8,8 @@ import android.content.Context
 import android.content.ContextWrapper
 import android.content.Intent
 import android.graphics.Bitmap
+import android.location.Location
+import android.location.LocationManager
 import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
@@ -58,8 +60,11 @@ class AddHappyPlaceActivity : AppCompatActivity(), View.OnClickListener {
             onBackPressed()
         }
 
-        if(!Places.isInitialized()){
-            Places.initialize(this@AddHappyPlaceActivity, resources.getString(R.string.google_maps_api_key))
+        if (!Places.isInitialized()) {
+            Places.initialize(
+                this@AddHappyPlaceActivity,
+                resources.getString(R.string.google_maps_api_key)
+            )
         }
 
         if (intent.hasExtra(MainActivity.EXTRA_PLACE_DETAILS)) {
@@ -93,6 +98,15 @@ class AddHappyPlaceActivity : AppCompatActivity(), View.OnClickListener {
         tv_add_image.setOnClickListener(this)
         btn_save.setOnClickListener(this)
         et_location.setOnClickListener(this)
+        tv_select_current_location.setOnClickListener(this)
+    }
+
+    private fun isLocationEnabled(): Boolean {
+        val locationManager: LocationManager =
+            getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) || locationManager.isProviderEnabled(
+            LocationManager.NETWORK_PROVIDER
+        )
     }
 
     override fun onClick(v: View?) {
@@ -178,6 +192,44 @@ class AddHappyPlaceActivity : AppCompatActivity(), View.OnClickListener {
                     e.printStackTrace()
                 }
             }
+            R.id.tv_select_current_location -> {
+
+                if (!isLocationEnabled()) {
+                    Toast.makeText(
+                        this,
+                        "Your location provider is turned off. Please turn it on.",
+                        Toast.LENGTH_SHORT
+                    ).show()
+
+                    // This will redirect you to settings from where you need to turn on the location provider.
+                    val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+                    startActivity(intent)
+                } else {
+                    Dexter.withActivity(this)
+                        .withPermissions(
+                            Manifest.permission.ACCESS_FINE_LOCATION,
+                            Manifest.permission.ACCESS_COARSE_LOCATION
+                        )
+                        .withListener(object : MultiplePermissionsListener {
+                            override fun onPermissionsChecked(report: MultiplePermissionsReport?) {
+                                if (report!!.areAllPermissionsGranted()) {
+                                    Toast.makeText(
+                                        this@AddHappyPlaceActivity,
+                                        "Location permission is granted. Now you can request for a current location.",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            }
+                            override fun onPermissionRationaleShouldBeShown(
+                                permissions: MutableList<PermissionRequest>?,
+                                token: PermissionToken?
+                            ) {
+                                showRationalDialogForPermissions()
+                            }
+                        }).onSameThread()
+                        .check()
+                }
+            }
         }
     }
 
@@ -207,7 +259,7 @@ class AddHappyPlaceActivity : AppCompatActivity(), View.OnClickListener {
                 iv_place_image.setImageBitmap(thumbnail)
                 saveImageToInternalStorage = saveImageToInternalStorage(thumbnail)
                 Log.e("Saved image: ", "Path :: $saveImageToInternalStorage")
-            } else if (requestCode == PLACE_AUTOCOMPLETE_REQUEST_CODE){
+            } else if (requestCode == PLACE_AUTOCOMPLETE_REQUEST_CODE) {
                 val place: Place = Autocomplete.getPlaceFromIntent(data!!)
                 et_location.setText(place.address)
                 mLatitude = place.latLng!!.latitude
